@@ -49,6 +49,28 @@ namespace CalculatorApp.Parsers
             throw new InvalidOperationException($"Unkown operator id: {idOrName}");
         }
 
+        //Find an element that is an operation
+        private static XElement FindOperationElement(XElement node)
+        {
+            //Found an operation so send it up
+            if (IsOperation(node))
+            {
+                return node;
+            }
+
+            //Check for nested operations
+            foreach (var child in node.Elements())
+            {
+                var found = FindOperationElement(child);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
         //Check if elemnt is an operation by checking for an ID
         private static bool IsOperation(XElement el)
         {
@@ -67,5 +89,63 @@ namespace CalculatorApp.Parsers
             var name = el.Name.LocalName.ToLowerInvariant();
             return name.Contains("operation");
         }
+
+        //Parse an XML file into an Operation Object
+        public static Operation ParseXml(string xml)
+        {
+            //Check for empty file
+            if (string.IsNullOrWhiteSpace(xml))
+            {
+                throw new ArgumentException("input is empty");
+            }
+
+            var doc = XDocument.Parse(xml);
+            var root = doc.Root ?? throw new ArgumentException("XML root not found");
+
+            //Find the first operation element
+            var opElement = FindOperationElement(root);
+            if (opElement == null)
+            {
+                throw new ArgumentException("No operation element found in input");
+            }
+
+            return PareseOperationElement(opElement);
+        }
+
+        //Convert XElement to an operation object 
+        private static Operation PareseOperationElement(XElement el)
+        {
+            var operation = new Operation
+            {
+                Value = new List<double>(),
+                SubOperations = new List<Operation>()
+            };
+
+            //Get the opertator ID with checking for different spelling
+            var idAttribute = el.Attribute("ID")?.Value ?? el.Attribute("Id")?.Value ?? el.Attribute("id")?.Value;
+            operation.ID = ParseOperatorID(idAttribute ?? el.Name.LocalName);
+
+            //Now parse the value 
+            foreach (var v in el.Elements().Where(x => x.Name.LocalName.Equals("Value", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (double.TryParse(v.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                {
+                    operation.Value.Add(d);
+                }
+                else
+                {
+                    throw new FormatException("Value: " + v.Value + " is not a valid number");
+                }
+            }
+
+            //Parsing nested operations
+            foreach (var child in el.Elements().Where(IsOperation))
+            {
+                operation.SubOperations.Add(PareseOperationElement(child));
+            }
+
+            return operation;
+        }
+
     }
 }
