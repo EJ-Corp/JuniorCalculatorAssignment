@@ -120,8 +120,6 @@ namespace CalculatorApp.Tests
             Assert.Equal(18, result);
         }
         #endregion
-
-
         
     }
 }
