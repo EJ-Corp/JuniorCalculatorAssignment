@@ -14,8 +14,9 @@ namespace CalculatorApp
             };
 
             Maths maths = new Maths();
-
             double result = maths.Calculate(addOperation);
+
+            Console.WriteLine($"Result: {result}");
         }
 
     }
