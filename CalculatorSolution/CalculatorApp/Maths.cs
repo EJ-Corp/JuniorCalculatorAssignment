@@ -8,6 +8,13 @@ namespace CalculatorApp
         {
             double result = 0;
 
+            //Do all nested operations first
+            foreach(var subOp in operation.SubOperations)
+            {
+                double subResult = Calculate(subOp);
+                operation.Value.Add(subResult);
+            }
+
             switch(operation.ID)
             {
                 //Addition Behaviour
