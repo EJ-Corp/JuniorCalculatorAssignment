@@ -12,3 +12,6 @@ C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\Cal
 C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\CalculatorApp\obj\Debug\net7.0\CalculatorApp.pdb
 C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\CalculatorApp\obj\Debug\net7.0\CalculatorApp.genruntimeconfig.cache
 C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\CalculatorApp\obj\Debug\net7.0\ref\CalculatorApp.dll
+C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\CalculatorApp\bin\Debug\net7.0\Newtonsoft.Json.dll
+C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\CalculatorApp\obj\Debug\net7.0\CalculatorApp.csproj.AssemblyReference.cache
+C:\Users\User\Documents\GitHub\JuniorCalculatorAssignment\CalculatorSolution\CalculatorApp\obj\Debug\net7.0\CalculatorApp.csproj.CopyComplete

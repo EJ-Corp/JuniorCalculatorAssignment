@@ -4,11 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 using CalculatorApp;
+using Newtonsoft.Json.Linq;
 
 namespace CalculatorApp.Parsers
 {
     public static class InputPaser
     {
+        #region Shared Helper Methods
+
         //Map the ID in string version to an Operator constant 
         public static Operator ParseOperatorID(string idOrName)
         {
@@ -47,6 +50,45 @@ namespace CalculatorApp.Parsers
 
             //Any other = error
             throw new InvalidOperationException($"Unkown operator id: {idOrName}");
+        }
+
+        #endregion
+
+        #region XML Specific Methods
+
+        //Convert XElement to an operation object 
+        private static Operation PareseOperationElement(XElement el)
+        {
+            var operation = new Operation
+            {
+                Value = new List<double>(),
+                SubOperations = new List<Operation>()
+            };
+
+            //Get the opertator ID with checking for different spelling
+            var idAttribute = el.Attribute("ID")?.Value ?? el.Attribute("Id")?.Value ?? el.Attribute("id")?.Value;
+            operation.ID = ParseOperatorID(idAttribute ?? el.Name.LocalName);
+
+            //Now parse the value 
+            foreach (var v in el.Elements().Where(x => x.Name.LocalName.Equals("Value", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (double.TryParse(v.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                {
+                    operation.Value.Add(d);
+                }
+                else
+                {
+                    throw new FormatException("Value: " + v.Value + " is not a valid number");
+                }
+            }
+
+            //Parsing nested operations
+            foreach (var child in el.Elements().Where(IsOperation))
+            {
+                operation.SubOperations.Add(PareseOperationElement(child));
+            }
+
+            return operation;
         }
 
         //Find an element that is an operation
@@ -113,40 +155,61 @@ namespace CalculatorApp.Parsers
             return PareseOperationElement(opElement);
         }
 
-        //Convert XElement to an operation object 
-        private static Operation PareseOperationElement(XElement el)
+        #endregion
+
+        #region JSON Specific Methods
+
+        //COnvert JProperty into Operation Object
+        private static Operation ParseOperationJson(JProperty prop)
         {
-            var operation = new Operation
-            {
-                Value = new List<double>(),
-                SubOperations = new List<Operation>()
-            };
+            Operation operation = new Operation();
 
-            //Get the opertator ID with checking for different spelling
-            var idAttribute = el.Attribute("ID")?.Value ?? el.Attribute("Id")?.Value ?? el.Attribute("id")?.Value;
-            operation.ID = ParseOperatorID(idAttribute ?? el.Name.LocalName);
+            //Find the ID of the operator
+            string id = prop.Value["@ID"]?.ToString() ?? prop.Name?? throw new ArgumentException("Cannot determine operator ID");
+            operation.ID = ParseOperatorID(id);
 
-            //Now parse the value 
-            foreach (var v in el.Elements().Where(x => x.Name.LocalName.Equals("Value", StringComparison.OrdinalIgnoreCase)))
+            //Parse the values for operation
+            var valuesToken = prop.Value["Value"];
+            if (valuesToken != null)
             {
-                if (double.TryParse(v.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                foreach (var v in valuesToken)
                 {
-                    operation.Value.Add(d);
-                }
-                else
-                {
-                    throw new FormatException("Value: " + v.Value + " is not a valid number");
+                    if (double.TryParse(v.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                    {
+                        operation.Value.Add(d);
+                    }
+                    else
+                    {
+                        throw new FormatException("Value " + v + " is not a valid number");
+                    }
                 }
             }
 
-            //Parsing nested operations
-            foreach (var child in el.Elements().Where(IsOperation))
+            //Parse nested operations into operation objects
+            foreach (var childProp in prop.Value.Children<JProperty>())
             {
-                operation.SubOperations.Add(PareseOperationElement(child));
+                if (childProp.Name != "Value" && childProp.Name != "@ID")
+                {
+                    operation.SubOperations.Add(ParseOperationJson(childProp));
+                }
             }
 
             return operation;
         }
 
+        //Parse a JSON file into an Operarion Object
+         public static Operation ParseJson(string json)
+        {
+            var jObject = JObject.Parse(json);
+
+            var rootProp = jObject.Properties().First();
+
+            var rootOperation = rootProp.Value.Children<JProperty>().First();
+
+            return ParseOperationJson(rootOperation);
+        }
+        
+        #endregion
+        
     }
 }
