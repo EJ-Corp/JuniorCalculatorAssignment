@@ -109,6 +109,7 @@ namespace CalculatorApp.Parsers
                 throw new ArgumentException("No operation element found in input");
             }
 
+            //Conver the XElement to a Operation and return
             return PareseOperationElement(opElement);
         }
 
