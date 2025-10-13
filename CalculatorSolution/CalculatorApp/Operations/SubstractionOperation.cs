@@ -12,17 +12,30 @@ namespace CalculatorApp
                 return 0;
             }
 
-            double result = Values.FirstOrDefault();
+            double result;
 
-            for (int i = 1; i < Values.Count; i++)
+            if(Values.Any())
             {
-                result -= Values[i];
+                result = Values.First();
+                for (int i = 1; i < Values.Count; i++)
+                {
+                    result -= Values[i];
+                }
+            } else
+            {
+                result = SubOperations.First().Calculate();
+                for (int i = 1; i < SubOperations.Count; i++)
+                {
+                    result -= SubOperations[i].Calculate();
+                }
+
+                return result;
             }
 
-            foreach (var op in SubOperations)
-            {
-                result -= op.Calculate();
-            }
+                foreach (var op in SubOperations)
+                {
+                    result -= op.Calculate();
+                }
 
             return result;
         }

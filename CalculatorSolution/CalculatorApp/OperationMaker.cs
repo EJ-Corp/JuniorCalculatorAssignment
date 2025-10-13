@@ -6,6 +6,10 @@ namespace CalculatorApp
     {
         public static OperationBase Create(Operation op)
         {
+            if(op == null)
+            {
+                throw new ArgumentException(nameof(op));
+            }
             OperationBase operationBase;
 
             switch (op.ID)
