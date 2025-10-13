@@ -11,7 +11,6 @@ namespace CalculatorApp.Parsers
     public static class InputPaser
     {
         #region Shared Helper Methods
-
         //Map the ID in string version to an Operator constant 
         public static Operator ParseOperatorID(string idOrName)
         {
