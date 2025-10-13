@@ -121,5 +121,31 @@ namespace CalculatorApp.Tests
                 double result = maths.Calculate(op);
             });
         }
+
+        [Fact]
+        public void Parse_SampleXml_CalculatesNestedOperationsCorrectly()
+        {
+            var xml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+                            <Maths>
+                                <Operation id=""Plus"">
+                                    <Value>2</Value>
+                                    <Value>3</Value>
+                                        <Operation ID=""Multiplication"">
+                                            <Value>4</Value>
+                                                <Operation ID=""Division"">
+                                                    <Value>10</Value>
+                                                    <Value>5</Value>
+                                                </Operation>
+                                        </Operation>
+                                </Operation>
+                            </Maths>";
+
+            var op = InputPaser.ParseXml(xml);
+
+            Maths maths = new Maths();
+            double result = maths.Calculate(op);
+
+            Assert.Equal(13, result);
+        }
     }
 }
