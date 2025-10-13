@@ -162,14 +162,23 @@ namespace CalculatorApp.Parsers
         //COnvert JProperty into Operation Object
         private static Operation ParseOperationJson(JProperty prop)
         {
-            Operation operation = new Operation();
+            if (!(prop.Value is JObject obj))
+            {
+                throw new ArgumentException($"Expected JObject for operation '{prop.Name}'");
+            }
+            
+            Operation operation = new Operation()
+            {
+                Value = new List<double>(),
+                SubOperations = new List<Operation>()
+            };
 
             //Find the ID of the operator
-            string id = prop.Value["@ID"]?.ToString() ?? prop.Name?? throw new ArgumentException("Cannot determine operator ID");
+            string id = obj["@ID"]?.ToString() ?? prop.Name?? throw new ArgumentException("Cannot determine operator ID");
             operation.ID = ParseOperatorID(id);
 
             //Parse the values for operation
-            var valuesToken = prop.Value["Value"];
+            var valuesToken = obj["Value"];
             if (valuesToken != null)
             {
                 foreach (var v in valuesToken)
@@ -186,7 +195,7 @@ namespace CalculatorApp.Parsers
             }
 
             //Parse nested operations into operation objects
-            foreach (var childProp in prop.Value.Children<JProperty>())
+            foreach (var childProp in obj.Properties())
             {
                 if (childProp.Name != "Value" && childProp.Name != "@ID")
                 {
@@ -203,10 +212,14 @@ namespace CalculatorApp.Parsers
             var jObject = JObject.Parse(json);
 
             var rootProp = jObject.Properties().First();
+            var firstOperationProp = rootProp.Value.Children<JProperty>().FirstOrDefault();
 
-            var rootOperation = rootProp.Value.Children<JProperty>().First();
-
-            return ParseOperationJson(rootOperation);
+            if (firstOperationProp == null)
+            {
+                throw new ArgumentException("No operation found in JSON");
+            }
+                
+            return ParseOperationJson(firstOperationProp);
         }
         
         #endregion
