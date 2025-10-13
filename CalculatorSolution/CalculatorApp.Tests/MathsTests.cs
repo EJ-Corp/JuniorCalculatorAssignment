@@ -93,6 +93,7 @@ namespace CalculatorApp.Tests
             Assert.Equal(25, result);
         }
         
+        [Fact]
         public void NestedOperation_ShouldReturnCorrectResult2()
         {
             //Test 10 - 7 + 5 * 3
